@@ -38,5 +38,6 @@ public class InstanceManager {
         edgeValue = Double.parseDouble(lineTokens.nextToken());
         
         instance.getAdjacentMatrix()[i][j] = edgeValue;
+        instance.getAdjacentMatrix()[j][i] = edgeValue;
     }
 }
