@@ -23,7 +23,7 @@ public class TRPSolver {
     public void solve() {
         GRBVar[][] permutationVariables;
         GRBVar[] distances;
-        readInstance("instance_5.trp");
+        readInstance("TRP-S10-R1.trp");
 
         try {
             GRBEnv env = new GRBEnv();
@@ -147,6 +147,6 @@ public class TRPSolver {
     
     private void readInstance(String name) {
         InstanceManager instanceMg = new InstanceManager();
-        instance = instanceMg.readInstance("instances/" + name);
+        instance = instanceMg.readInstance("instances/converted/" + name);
     }
 }
