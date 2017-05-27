@@ -23,7 +23,7 @@ public class TRPSolver {
     public void solve() {
         GRBVar[][] permutationVariables;
         GRBVar[] distances;
-        readInstance("TRP-S10-R1.trp");
+        readInstance("instance_5.trp");
 
         try {
             GRBEnv env = new GRBEnv();
