@@ -72,9 +72,11 @@ public class TRP_GA {
             printBestChromossome();
         }
         
-        int index = rng.nextInt(offspring.size());
-        offspring.remove(index);
-        offspring.add(bestChromosome);
+        Chromosome worstChromosome = findWorstChromosome(offspring);
+        if (worstChromosome.getFitnessValue() > bestChromosome.getFitnessValue()) {
+            offspring.remove(worstChromosome);
+            offspring.add(bestChromosome);
+        }
     }
     
     private void printBestChromossome() {
@@ -150,14 +152,26 @@ public class TRP_GA {
         return this.population.get(rng.nextInt(popSize));
     }
     
+    private Chromosome findWorstChromosome(Population population) {
+        return Collections.max(population, new Comparator<Chromosome>(){
+            @Override
+            public int compare(Chromosome first, Chromosome second) {
+                return Double.compare(first.getFitnessValue(), second.getFitnessValue());
+            }
+         });
+    }
+    
+    private Chromosome findBestChromosome(Population population) {
+        return Collections.min(population, new Comparator<Chromosome>(){
+            @Override
+            public int compare(Chromosome first, Chromosome second) {
+                return Double.compare(first.getFitnessValue(), second.getFitnessValue());
+            }
+         });
+    }
+    
     private void setBestChromosome() {
-        bestChromosome = Collections.min(population, new Comparator<Chromosome>(){
-           @Override
-           public int compare(Chromosome first, Chromosome second) {
-               return Double.compare(first.getFitnessValue(), second.getFitnessValue());
-           }
-        });
-        
+        bestChromosome = findBestChromosome(population);
     }
     
     private Double evaluateFitness(Chromosome chromosome) {
