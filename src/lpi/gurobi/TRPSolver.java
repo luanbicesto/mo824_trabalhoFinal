@@ -23,7 +23,7 @@ public class TRPSolver {
     public void solve() {
         GRBVar[][] permutationVariables;
         GRBVar[] distances;
-        readInstance("instance_5.trp");
+        readInstance("TRP-S10-R1.trp");
 
         try {
             GRBEnv env = new GRBEnv();
@@ -49,7 +49,7 @@ public class TRPSolver {
         model.optimize();
         for(int i = 1; i < instance.getGraphSize(); i++) {
             for(int j = 1; j < instance.getGraphSize(); j++) {
-                GRBVar x = model.getVarByName("x" + Integer.toString(j) + Integer.toString(i));
+                GRBVar x = model.getVarByName("x" + Integer.toString(i) + Integer.toString(j));
                 if(x != null && Double.compare(x.get(GRB.DoubleAttr.X), 1) == 0) {
                     System.out.print(j + " ");
                     break;

@@ -12,6 +12,11 @@ public class Chromosome extends ArrayList<Integer>{
     public Chromosome(ArrayList<Integer> genes) {
         super(genes);
     }
+    
+    public Chromosome(Chromosome chromosome) {
+        super(chromosome);
+        this.fitnessValue = chromosome.getFitnessValue();
+    }
 
     public Double getFitnessValue() {
         return fitnessValue;
