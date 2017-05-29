@@ -89,7 +89,6 @@ public class TRP_GA {
         
         /*PontoMelhoria: 
          * swapGenesCrossover: verificar o metodo do professor
-         * swapGenesCrossover: fazer guloso?
          * Escolher os pais aleatoriamente ?
          */
         for(int i = 0; i < popSize; i+=2) {
@@ -98,7 +97,6 @@ public class TRP_GA {
             genes1 = new ArrayList<>();
             genes2 = new ArrayList<>();
             int crosspoint1 = rng.nextInt(chromosomeSize);
-            //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
             int crosspoint2 = crosspoint1 + 2 < chromosomeSize ? crosspoint1 + 2 : crosspoint1;
             
             
@@ -108,7 +106,6 @@ public class TRP_GA {
             for(int c = crosspoint1; c <= crosspoint2; c++) {
                 genes1.add(offspring1.get(c));
                 genes2.add(offspring2.get(c));
-                //swapGenesCrossover(offspring1, offspring2, c);
             }
             
             Collections.shuffle(genes1, rng);
@@ -126,19 +123,6 @@ public class TRP_GA {
         }
         
         return offspring;
-    }
-    
-    private void swapGenesCrossover(Chromosome offspring1, Chromosome offspring2, int locus) {
-        int geneOffspring1 = offspring1.get(locus);
-        int geneOffspring2 = offspring2.get(locus);
-        int locusChangeGene1 = offspring1.indexOf(geneOffspring2);
-        int locusChangeGene2 = offspring2.indexOf(geneOffspring1);
-        
-        offspring1.set(locus, geneOffspring2);
-        offspring2.set(locus, geneOffspring1);
-        
-        offspring1.set(locusChangeGene1, geneOffspring1);
-        offspring2.set(locusChangeGene2, geneOffspring2);
     }
     
     /*
@@ -223,7 +207,7 @@ public class TRP_GA {
         InstanceManager instanceMg = new InstanceManager();
         Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
         
-        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 200000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
+        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
     }
 }
