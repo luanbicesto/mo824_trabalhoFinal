@@ -19,7 +19,9 @@ public class TRP_GA {
     private Chromosome bestChromosome;
     private Random rng = new Random(0);
     private Instance instance;
+    private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     
+    private static int CROSSPOINT_SIZE = 4;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -37,6 +39,7 @@ public class TRP_GA {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
+            localSearchBestChromosome(offspring, LS_TYPE.FIRST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
             this.population = offspring;
         }
@@ -45,14 +48,55 @@ public class TRP_GA {
         printBestChromossome();
     }
     
+    private void localSearchBestChromosome(Population population, LS_TYPE lsType) {
+        Chromosome bestChromosome = findBestChromosome(population);
+        localSearch(bestChromosome, lsType);
+    }
+    
+    private void localSearch(Chromosome chromosome, LS_TYPE lsType) {
+        int bestMovimentI = 0;
+        int bestMovimentJ = 0;
+        double bestMovimentCost = chromosome.getFitnessValue();
+        double movimentFinalCost = 0.0;
+        boolean improved = true;
+        
+        while(improved) {
+            improved = false;
+            for(int i = 0; i < chromosome.size(); i++) {
+                for(int j = i+1; j < chromosome.size(); j++) {
+                    swapGeneMutation(chromosome, i, j);
+                    movimentFinalCost = evaluateFitness(chromosome);
+                    
+                    if(Double.compare(movimentFinalCost, bestMovimentCost) < 0) {
+                        if(lsType == LS_TYPE.BEST_IMPROVING) {
+                            bestMovimentI = i;
+                            bestMovimentJ = j;
+                            swapGeneMutation(chromosome, i, j);
+                        }
+                        bestMovimentCost = movimentFinalCost;
+                        improved = true;
+                    }
+                }
+            }
+            if(improved && lsType == LS_TYPE.BEST_IMPROVING) {
+                swapGeneMutation(chromosome, bestMovimentI, bestMovimentJ);
+            }
+        }
+        
+        chromosome.setFitnessValue(evaluateFitness(chromosome));
+    }
+    
     private void mutate(Population offspring) {
         for(Chromosome chromosome : offspring) {
             for(int i = 0; i < chromosome.size(); i++) {
-                for(int j = i+1; j < chromosome.size(); j++) {
+                if(rng.nextDouble() < mutatationRate) {
+                    swapGeneMutation(chromosome, i, rng.nextInt(chromosome.size()));
+                }
+                /*for(int j = i+1; j < chromosome.size(); j++) {
                     if(j != i && rng.nextDouble() < mutatationRate) {
                         swapGeneMutation(chromosome, i, j);
                     }
-                }
+                }*/
             }
             chromosome.setFitnessValue(evaluateFitness(chromosome));
         }
@@ -99,7 +143,7 @@ public class TRP_GA {
             genes1 = new ArrayList<>();
             genes2 = new ArrayList<>();
             int crosspoint1 = rng.nextInt(chromosomeSize);
-            int crosspoint2 = crosspoint1 + 2 < chromosomeSize ? crosspoint1 + 2 : crosspoint1;
+            int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
             
             
             Chromosome offspring1 = new Chromosome(parent1);
@@ -211,7 +255,7 @@ public class TRP_GA {
     }
     
     private Chromosome generateRandomChromosome(ArrayList<Integer> genes) {
-        Collections.shuffle(genes, rng);
+        Collections.shuffle(genes);
         Chromosome chromosome = new Chromosome(genes);
         chromosome.setFitnessValue(evaluateFitness(chromosome));
         return chromosome;
@@ -219,7 +263,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();

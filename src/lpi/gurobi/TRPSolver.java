@@ -23,12 +23,12 @@ public class TRPSolver {
     public void solve() {
         GRBVar[][] permutationVariables;
         GRBVar[] distances;
-        readInstance("TRP-S10-R1.trp");
+        readInstance("TRP-S100-R1.trp");
 
         try {
             GRBEnv env = new GRBEnv();
             GRBModel model = new GRBModel(env);
-            model.set(GRB.DoubleParam.TimeLimit, 1800);
+            model.set(GRB.DoubleParam.TimeLimit, 3600);
 
             permutationVariables = createPermutationVariables(model);
             distances = createDistanceVariables(model, permutationVariables);
