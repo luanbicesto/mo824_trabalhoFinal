@@ -56,7 +56,7 @@ public class InstanceManager {
     private String buildLine(VertexPosition source, VertexPosition destiny) {
         int xSquareDifference = (int) Math.pow((double)(source.getX() - destiny.getX()), 2.0);
         int ySquareDifference = (int) Math.pow((double)(source.getY() - destiny.getY()), 2.0);
-        double distance = Math.round(Math.sqrt(xSquareDifference + ySquareDifference) * 100d) / 100d;
+        double distance = Math.floor(Math.sqrt(xSquareDifference + ySquareDifference));
         String line = Integer.toString(source.getId()) + " " +
                       Integer.toString(destiny.getId()) + " " +
                       Double.toString(distance);
