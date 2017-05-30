@@ -39,7 +39,7 @@ public class TRP_GA {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
-            localSearchBestChromosome(offspring, LS_TYPE.FIRST_IMPROVING);
+            localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
             this.population = offspring;
         }
@@ -75,6 +75,8 @@ public class TRP_GA {
                         }
                         bestMovimentCost = movimentFinalCost;
                         improved = true;
+                    } else {
+                        swapGeneMutation(chromosome, i, j);
                     }
                 }
             }
@@ -263,7 +265,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S10-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
