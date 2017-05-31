@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import common.Instance;
 import common.InstanceManager;
@@ -42,12 +44,29 @@ public class TRP_GA {
             Population offspring = crossover(parents);
             mutate(offspring);
             localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
-            keepBestChromosomeNextGeneration(offspring);
-            this.population = offspring;
+            
+            this.population = selectNewPopulation(offspring);
         }
         
         setBestChromosome();
         printBestChromossome();
+    }
+    
+    private Population selectNewPopulation(Population offspring) {
+        keepBestChromosomeNextGeneration(offspring);
+        
+        Population newPopulation = createInitialPopulation();
+        int removeOffspring = this.popSize / 3;
+        
+        for(int i = 0; i < removeOffspring; i++) {
+            offspring.remove(rng.nextInt(offspring.size()));
+        }
+        
+        for(int i = 0; i < removeOffspring; i++) {
+            offspring.add(newPopulation.get(rng.nextInt(newPopulation.size())));
+        }
+        
+        return offspring;
     }
     
     private void localSearchBestChromosome(Population population, LS_TYPE lsType) {
@@ -116,6 +135,8 @@ public class TRP_GA {
                 set.add(chromosome.get(i));
             }
         }
+        
+        chromosome.setFeasible(true);
     }
     
     private Integer chooseNextGene(Chromosome chromosome, int locus, Set<Integer> setDistinct) {
@@ -123,7 +144,10 @@ public class TRP_GA {
             return setDistinct.iterator().next();
         }
         
-        Integer previousGene = chromosome.get(locus - 1);
+        ArrayList<Integer> genes = new ArrayList<>(setDistinct);
+        return genes.get(rng.nextInt(genes.size()));
+        
+        /*Integer previousGene = chromosome.get(locus - 1);
         Integer nextGene = chromosome.get(locus + 1);
         Integer bestGene = chromosome.get(locus);
         double cost = 0.0;
@@ -140,7 +164,7 @@ public class TRP_GA {
             }
         }
         
-        return bestGene;
+        return bestGene;*/
     }
     
     private void swapGeneMutation(Chromosome chromosome, int locus1, int locus2) {
@@ -177,10 +201,14 @@ public class TRP_GA {
          * Escolher os pais aleatoriamente ?
          */
         for(int i = 0; i < popSize; i+=2) {
+            Set<Integer> newGenes1 = new HashSet<>();
+            Set<Integer> newGenes2 = new HashSet<>();
+            
             Chromosome parent1 = parents.get(i);
             Chromosome parent2 = parents.get(i+1);
             int crosspoint1 = rng.nextInt(chromosomeSize);
-            int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
+            int crosspoint2 = crosspoint1 + 2 < chromosomeSize ? crosspoint1 + 2 : crosspoint1; 
+            //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
             
             Chromosome offspring1 = new Chromosome(parent1);
             Chromosome offspring2 = new Chromosome(parent2);
@@ -188,15 +216,29 @@ public class TRP_GA {
             for(int c = crosspoint1; c <= crosspoint2; c++) {
                 offspring1.set(c, parent2.get(c));
                 offspring2.set(c, parent1.get(c));
+                newGenes1.add(parent2.get(c));
+                newGenes2.add(parent1.get(c));
             }
             
             offspring1.setFitnessValue(evaluateFitness(offspring1));
             offspring2.setFitnessValue(evaluateFitness(offspring2));
+            offspring1.setFeasible(isFeasible(newGenes1, newGenes2));
+            offspring2.setFeasible(isFeasible(newGenes2, newGenes1));
             offspring.add(offspring1);
             offspring.add(offspring2);
         }
         
         return offspring;
+    }
+    
+    private boolean isFeasible(Set<Integer> newGenes1, Set<Integer> newGenes2) {
+        for(Integer gene : newGenes1) {
+            if(!newGenes2.contains(gene)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
     
     /*
@@ -234,7 +276,11 @@ public class TRP_GA {
     }
     
     private Chromosome findBestChromosome(Population population) {
-        return Collections.min(population, new Comparator<Chromosome>(){
+        List<Chromosome> feasiblePopulation = population.stream()
+                                                  .filter(chromosome -> chromosome.isFeasible())
+                                                  .collect(Collectors.toList());
+        
+        return Collections.min(feasiblePopulation, new Comparator<Chromosome>(){
             @Override
             public int compare(Chromosome first, Chromosome second) {
                 return Double.compare(first.getFitnessValue(), second.getFitnessValue());
@@ -243,7 +289,7 @@ public class TRP_GA {
     }
     
     private void setBestChromosome() {
-        bestChromosome = findBestChromosome(population);
+        bestChromosome = new Chromosome(findBestChromosome(population));
     }
     
     private Double evaluateFitness(Chromosome chromosome) {
@@ -291,9 +337,9 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S10-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
         
-        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1 - (1/(double)instance.getGraphSize()), instance); //population, chromosomeSize, generations, mutation
+        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1 - (2/(double)instance.getGraphSize()), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
     }
 }
