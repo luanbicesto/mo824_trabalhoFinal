@@ -44,8 +44,10 @@ public class TRP_GA {
             Population offspring = crossover(parents);
             mutate(offspring);
             localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
-            
+            //localSearchWorstChromosome(offspring, LS_TYPE.FIRST_IMPROVING);
+            keepBestChromosomeNextGeneration(offspring);
             this.population = selectNewPopulation(offspring);
+            //this.population = offspring;
         }
         
         setBestChromosome();
@@ -56,7 +58,7 @@ public class TRP_GA {
         keepBestChromosomeNextGeneration(offspring);
         
         Population newPopulation = createInitialPopulation();
-        int removeOffspring = this.popSize / 3;
+        int removeOffspring = (int)Math.floor(this.popSize * (0.2));
         
         for(int i = 0; i < removeOffspring; i++) {
             offspring.remove(rng.nextInt(offspring.size()));
@@ -72,6 +74,11 @@ public class TRP_GA {
     private void localSearchBestChromosome(Population population, LS_TYPE lsType) {
         Chromosome bestChromosome = findBestChromosome(population);
         localSearch(bestChromosome, lsType);
+    }
+    
+    private void localSearchWorstChromosome(Population population, LS_TYPE lsType) {
+        Chromosome worstChromosome = findWorstChromosome(population);
+        localSearch(worstChromosome, lsType);
     }
     
     private void localSearch(Chromosome chromosome, LS_TYPE lsType) {
@@ -112,8 +119,7 @@ public class TRP_GA {
     private void mutate(Population offspring) {
         for(Chromosome chromosome : offspring) {
             if(rng.nextDouble() < mutatationRate) {
-                adjustChromosome(chromosome);
-                chromosome.setFitnessValue(evaluateFitness(chromosome));
+                swapGeneMutation(chromosome, rng.nextInt(chromosome.size()), rng.nextInt(chromosome.size()));
             }
         }
     }
@@ -137,6 +143,7 @@ public class TRP_GA {
         }
         
         chromosome.setFeasible(true);
+        chromosome.setFitnessValue(evaluateFitness(chromosome));
     }
     
     private Integer chooseNextGene(Chromosome chromosome, int locus, Set<Integer> setDistinct) {
@@ -174,17 +181,17 @@ public class TRP_GA {
     }
     
     private void keepBestChromosomeNextGeneration(Population offspring) {
-        Chromosome lastBest = new Chromosome(bestChromosome);
-        setBestChromosome();
+        Chromosome bestOffspringChromosome = findBestChromosome(offspring);
         
-        if(bestChromosome.getFitnessValue() < lastBest.getFitnessValue()) {
+        if(bestOffspringChromosome.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
+            this.bestChromosome = new Chromosome(bestOffspringChromosome);
             printBestChromossome();
-        }
-        
-        Chromosome worstChromosome = findWorstChromosome(offspring);
-        if (worstChromosome.getFitnessValue() > bestChromosome.getFitnessValue()) {
-            offspring.remove(worstChromosome);
-            offspring.add(bestChromosome);
+            
+            Chromosome worstChromosome = findWorstChromosome(offspring);
+            if (worstChromosome.getFitnessValue() > bestChromosome.getFitnessValue()) {
+                offspring.remove(worstChromosome);
+                offspring.add(bestChromosome);
+            }
         }
     }
     
@@ -201,14 +208,11 @@ public class TRP_GA {
          * Escolher os pais aleatoriamente ?
          */
         for(int i = 0; i < popSize; i+=2) {
-            Set<Integer> newGenes1 = new HashSet<>();
-            Set<Integer> newGenes2 = new HashSet<>();
-            
             Chromosome parent1 = parents.get(i);
             Chromosome parent2 = parents.get(i+1);
             int crosspoint1 = rng.nextInt(chromosomeSize);
-            int crosspoint2 = crosspoint1 + 2 < chromosomeSize ? crosspoint1 + 2 : crosspoint1; 
-            //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
+            //int crosspoint2 = crosspoint1 + 2 < chromosomeSize ? crosspoint1 + 2 : crosspoint1; 
+            int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
             
             Chromosome offspring1 = new Chromosome(parent1);
             Chromosome offspring2 = new Chromosome(parent2);
@@ -216,14 +220,11 @@ public class TRP_GA {
             for(int c = crosspoint1; c <= crosspoint2; c++) {
                 offspring1.set(c, parent2.get(c));
                 offspring2.set(c, parent1.get(c));
-                newGenes1.add(parent2.get(c));
-                newGenes2.add(parent1.get(c));
             }
             
-            offspring1.setFitnessValue(evaluateFitness(offspring1));
-            offspring2.setFitnessValue(evaluateFitness(offspring2));
-            offspring1.setFeasible(isFeasible(newGenes1, newGenes2));
-            offspring2.setFeasible(isFeasible(newGenes2, newGenes1));
+            adjustChromosome(offspring1);
+            adjustChromosome(offspring2);
+            
             offspring.add(offspring1);
             offspring.add(offspring2);
         }
@@ -339,7 +340,7 @@ public class TRP_GA {
         InstanceManager instanceMg = new InstanceManager();
         Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
         
-        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1 - (2/(double)instance.getGraphSize()), instance); //population, chromosomeSize, generations, mutation
+        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
     }
 }

@@ -27,6 +27,7 @@ public class Chromosome extends ArrayList<Integer>{
     public Chromosome(Chromosome chromosome) {
         super(chromosome);
         this.fitnessValue = chromosome.getFitnessValue();
+        this.isFeasible = true;
     }
 
     public Double getFitnessValue() {
