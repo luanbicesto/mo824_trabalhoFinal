@@ -22,7 +22,8 @@ public class TRP_GA {
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     
     private static int CROSSPOINT_SIZE = 4;
-    private static double NEW_POPULATION_PERCENTAGE = 0.4;
+    private static double NEW_POPULATION_PERCENTAGE = 0.0;
+    private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -42,25 +43,69 @@ public class TRP_GA {
             mutate(offspring);
             localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
-            //this.population = selectNewGeneration(offspring);
-            this.population = offspring;
+            this.population = selectNewGeneration(offspring);
+            //this.population = offspring;
         }
         
         setBestChromosome(population);
         printBestChromossome();
     }
     
+    private Population createHybridPopulation() {
+        Population hybrids = new Population();
+        Population parents = selectParentsCrossover();
+        ArrayList<Integer> genes = buildGenes();
+        int hybridPopulationSize = (int)Math.ceil(popSize * HYBRID_POPULATION_PERCENTAGE);
+        
+        while(hybrids.size() <= hybridPopulationSize) {
+            ArrayList<Integer> genesCopy = new ArrayList<>(genes);
+            Chromosome parent = parents.get(rng.nextInt(parents.size()));
+            Chromosome hybrid = new Chromosome(parent);
+            int crosspoint = rng.nextInt(parent.size());
+            
+            for(int i = 0; i <= crosspoint; i++) {
+                genesCopy.remove(hybrid.get(i));
+            }
+            
+            for(int i = crosspoint + 1; i < hybrid.size(); i++) {
+                int indexGene = rng.nextInt(genesCopy.size());
+                hybrid.set(i, genesCopy.get(indexGene));
+                genesCopy.remove(indexGene);
+            }
+            
+            localSearch(hybrid, LS_TYPE.FIRST_IMPROVING);
+            hybrids.add(hybrid);
+        }
+        
+        return hybrids;
+    }
+    
+    private void includeNewPopulation(Population nextGeneration, Population newPopulation) {
+        int newPopulationSize = (int)Math.floor(this.popSize * NEW_POPULATION_PERCENTAGE);
+        
+        for(int i = 0; i < newPopulationSize; i++) {
+            nextGeneration.remove(rng.nextInt(nextGeneration.size()));
+        }
+        
+        for(int i = 0; i < newPopulationSize; i++) {
+            nextGeneration.add(newPopulation.get(rng.nextInt(newPopulation.size())));
+        }
+    }
+    
+    private void includeHybridPopulation(Population nextGeneration, Population hybridPopulation) {
+        for(int i = 0; i < hybridPopulation.size(); i++) {
+            nextGeneration.remove(rng.nextInt(nextGeneration.size()));
+        }
+        
+        nextGeneration.addAll(hybridPopulation);
+    }
+    
     private Population selectNewGeneration(Population offspring) {
         Population newPopulation = createInitialPopulation();
-        int removeOffspring = (int)Math.floor(this.popSize * NEW_POPULATION_PERCENTAGE);
+        Population hybridPopulation = createHybridPopulation();
         
-        for(int i = 0; i < removeOffspring; i++) {
-            offspring.remove(rng.nextInt(offspring.size()));
-        }
-        
-        for(int i = 0; i < removeOffspring; i++) {
-            offspring.add(newPopulation.get(rng.nextInt(newPopulation.size())));
-        }
+        includeNewPopulation(offspring, newPopulation);
+        includeHybridPopulation(offspring, hybridPopulation);
         
         return offspring;
     }
