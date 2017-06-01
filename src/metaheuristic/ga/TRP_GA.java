@@ -33,7 +33,7 @@ public class TRP_GA {
     
     public void solve() {
         population = createInitialPopulation();
-        setBestChromosome();
+        setBestChromosome(population);
         
         for(int g = 0; g < this.generations; g++) {
             Population parents = selectParentsCrossover();
@@ -41,11 +41,26 @@ public class TRP_GA {
             mutate(offspring);
             localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
-            this.population = offspring;
+            this.population = selectNewGeneration(offspring);
         }
         
-        setBestChromosome();
+        setBestChromosome(population);
         printBestChromossome();
+    }
+    
+    private Population selectNewGeneration(Population offspring) {
+        Population newPopulation = createInitialPopulation();
+        int removeOffspring = this.popSize / 5;
+        
+        for(int i = 0; i < removeOffspring; i++) {
+            offspring.remove(rng.nextInt(offspring.size()));
+        }
+        
+        for(int i = 0; i < removeOffspring; i++) {
+            offspring.add(newPopulation.get(rng.nextInt(newPopulation.size())));
+        }
+        
+        return offspring;
     }
     
     private void localSearchBestChromosome(Population population, LS_TYPE lsType) {
@@ -111,17 +126,16 @@ public class TRP_GA {
     }
     
     private void keepBestChromosomeNextGeneration(Population offspring) {
-        Chromosome lastBest = new Chromosome(bestChromosome);
-        setBestChromosome();
-        
-        if(bestChromosome.getFitnessValue() < lastBest.getFitnessValue()) {
+        Chromosome bestChromosomeOffspring = findBestChromosome(offspring);
+        if(bestChromosomeOffspring.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
+            this.bestChromosome = new Chromosome(bestChromosomeOffspring);
             printBestChromossome();
-        }
-        
-        Chromosome worstChromosome = findWorstChromosome(offspring);
-        if (worstChromosome.getFitnessValue() > bestChromosome.getFitnessValue()) {
-            offspring.remove(worstChromosome);
-            offspring.add(bestChromosome);
+            
+            Chromosome worstChromosome = findWorstChromosome(offspring);
+            if (worstChromosome.getFitnessValue() > bestChromosome.getFitnessValue()) {
+                offspring.remove(worstChromosome);
+                offspring.add(bestChromosome);
+            }
         }
     }
     
@@ -216,8 +230,8 @@ public class TRP_GA {
          });
     }
     
-    private void setBestChromosome() {
-        bestChromosome = findBestChromosome(population);
+    private void setBestChromosome(Population population) {
+        bestChromosome = new Chromosome(findBestChromosome(population));
     }
     
     private Double evaluateFitness(Chromosome chromosome) {
@@ -265,7 +279,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S10-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
