@@ -107,6 +107,11 @@ public class TRP_GA {
         Population newPopulation = createInitialPopulation();
         Population hybridPopulation = createHybridPopulation();
         
+        Chromosome bestHybrid = findBestChromosome(hybridPopulation);
+        if(bestHybrid.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
+            this.bestChromosome = new Chromosome(bestHybrid);
+        }
+        
         includeNewPopulation(offspring, newPopulation);
         includeHybridPopulation(offspring, hybridPopulation);
         
@@ -211,6 +216,10 @@ public class TRP_GA {
         return offspring;
     }
     
+    private void crossoverOX(Chromosome parent1, Chromosome parent2, Population offspring) {
+        
+    }
+    
     private void crossoverRandom(Chromosome parent1, Chromosome parent2, Population offspring) {
         ArrayList<Integer> genes1 = new ArrayList<>();
         ArrayList<Integer> genes2 = new ArrayList<>();
@@ -240,7 +249,8 @@ public class TRP_GA {
     
     private void crossoverTwoPoints(Chromosome parent1, Chromosome parent2, Population offspring) {
         int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
+        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
+        //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
         Chromosome offspring1 = new Chromosome(parent1);
         Chromosome offspring2 = new Chromosome(parent2);
         
