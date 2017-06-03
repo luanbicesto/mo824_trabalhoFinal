@@ -27,8 +27,8 @@ public class TRP_GA {
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     
     private static int CROSSPOINT_SIZE = 4;
-    private static double NEW_POPULATION_PERCENTAGE = 0.0;
-    private static double HYBRID_POPULATION_PERCENTAGE = 0.0;
+    private static double NEW_POPULATION_PERCENTAGE = 0.1;
+    private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -109,10 +109,10 @@ public class TRP_GA {
         Population newPopulation = createInitialPopulation();
         Population hybridPopulation = createHybridPopulation();
         
-        Chromosome bestHybrid = findBestChromosome(hybridPopulation);
+        /*Chromosome bestHybrid = findBestChromosome(hybridPopulation);
         if(bestHybrid.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
             this.bestChromosome = new Chromosome(bestHybrid);
-        }
+        }*/
         
         includeNewPopulation(offspring, newPopulation);
         includeHybridPopulation(offspring, hybridPopulation);
@@ -454,7 +454,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
