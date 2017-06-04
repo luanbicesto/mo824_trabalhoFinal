@@ -25,10 +25,12 @@ public class TRP_GA {
     private Instance instance;
     private ArrayList<Integer> genes;
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
+    private int generation;
     
     private static int CROSSPOINT_SIZE = 4;
-    private static double NEW_POPULATION_PERCENTAGE = 0.1;
+    private static double NEW_POPULATION_PERCENTAGE = 0.0;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
+    private static int EXECUTION_TIME = 300;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -39,10 +41,11 @@ public class TRP_GA {
     }
     
     public void solve() {
+        long initialTime = System.nanoTime();
         population = createInitialPopulation();
         setBestChromosome(population);
         
-        for(int g = 0; g < this.generations; g++) {
+        for(generation = 0; generation < this.generations && getElapsedTime(initialTime) <= EXECUTION_TIME; generation++) {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
@@ -52,8 +55,12 @@ public class TRP_GA {
             //this.population = offspring;
         }
         
-        setBestChromosome(population);
-        printBestChromossome();
+        /*setBestChromosome(population);
+        printBestChromossome();*/
+    }
+    
+    private long getElapsedTime(long initialTime) {
+        return (System.nanoTime() - initialTime) / 1000000000;
     }
     
     private Population createHybridPopulation() {
@@ -66,7 +73,7 @@ public class TRP_GA {
             ArrayList<Integer> genesCopy = new ArrayList<>(genes);
             Chromosome parent = parents.get(rng.nextInt(parents.size()));
             Chromosome hybrid = new Chromosome(parent);
-            int crosspoint = rng.nextInt(parent.size());
+            /*int crosspoint = rng.nextInt(parent.size());
             
             for(int i = 0; i <= crosspoint; i++) {
                 genesCopy.remove(hybrid.get(i));
@@ -76,7 +83,7 @@ public class TRP_GA {
                 int indexGene = rng.nextInt(genesCopy.size());
                 hybrid.set(i, genesCopy.get(indexGene));
                 genesCopy.remove(indexGene);
-            }
+            }*/
             
             localSearch(hybrid, LS_TYPE.FIRST_IMPROVING);
             hybrids.add(hybrid);
@@ -197,7 +204,8 @@ public class TRP_GA {
     }
     
     private void printBestChromossome() {
-        System.out.print(bestChromosome.getFitnessValue() + " - ");
+        System.out.println("Generation: " + generation);
+        System.out.print(" - " + bestChromosome.getFitnessValue() + " - ");
         System.out.println(bestChromosome.toString());
     }
     
@@ -214,6 +222,7 @@ public class TRP_GA {
             
             //crossoverTwoPoints(parent1, parent2, offspring);
             crossoverPMX(parent1, parent2, offspring);
+            //crossoverRandom(parent1, parent2, offspring);
         }
         
         return offspring;
@@ -221,7 +230,8 @@ public class TRP_GA {
     
     private void crossoverPMX(Chromosome parent1, Chromosome parent2, Population offspring) {
         int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
+        //int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
+        int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
         ArrayList<Integer> swath1 = new ArrayList<>();
         ArrayList<Integer> swath2 = new ArrayList<>();
         
@@ -454,7 +464,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
