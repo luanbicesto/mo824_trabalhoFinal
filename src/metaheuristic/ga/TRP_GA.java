@@ -26,11 +26,13 @@ public class TRP_GA {
     private ArrayList<Integer> genes;
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     private int generation;
+    private int generationsWithoutImproving;
     
     private static int CROSSPOINT_SIZE = 4;
-    private static double NEW_POPULATION_PERCENTAGE = 0.0;
+    private static double NEW_POPULATION_PERCENTAGE = 0.5;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
     private static int EXECUTION_TIME = 300;
+    private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 100;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -38,6 +40,7 @@ public class TRP_GA {
         this.generations = generations;
         this.mutatationRate = mutatationRate;
         this.instance = instance;
+        this.generationsWithoutImproving = 0;
     }
     
     public void solve() {
@@ -54,9 +57,6 @@ public class TRP_GA {
             this.population = selectNewGeneration(offspring);
             //this.population = offspring;
         }
-        
-        /*setBestChromosome(population);
-        printBestChromossome();*/
     }
     
     private long getElapsedTime(long initialTime) {
@@ -100,7 +100,9 @@ public class TRP_GA {
         }
         
         for(int i = 0; i < newPopulationSize; i++) {
-            nextGeneration.add(newPopulation.get(rng.nextInt(newPopulation.size())));
+            Chromosome newChromosome = newPopulation.get(rng.nextInt(newPopulation.size())); 
+            //localSearch(newChromosome, LS_TYPE.FIRST_IMPROVING);
+            nextGeneration.add(newChromosome);
         }
     }
     
@@ -113,16 +115,15 @@ public class TRP_GA {
     }
     
     private Population selectNewGeneration(Population offspring) {
-        Population newPopulation = createInitialPopulation();
         Population hybridPopulation = createHybridPopulation();
-        
-        /*Chromosome bestHybrid = findBestChromosome(hybridPopulation);
-        if(bestHybrid.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
-            this.bestChromosome = new Chromosome(bestHybrid);
-        }*/
-        
-        includeNewPopulation(offspring, newPopulation);
         includeHybridPopulation(offspring, hybridPopulation);
+        
+        if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING) {
+            Population newPopulation = createInitialPopulation();
+            includeNewPopulation(offspring, newPopulation);
+            this.generationsWithoutImproving = 0;
+            System.out.println("New population arrived");
+        }
         
         return offspring;
     }
@@ -192,6 +193,7 @@ public class TRP_GA {
     private void keepBestChromosomeNextGeneration(Population offspring) {
         Chromosome bestChromosomeOffspring = findBestChromosome(offspring);
         if(bestChromosomeOffspring.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
+            this.generationsWithoutImproving = 0;
             this.bestChromosome = new Chromosome(bestChromosomeOffspring);
             printBestChromossome();
             
@@ -200,6 +202,8 @@ public class TRP_GA {
                 offspring.remove(worstChromosome);
                 offspring.add(bestChromosome);
             }
+        } else {
+            this.generationsWithoutImproving++;
         }
     }
     
