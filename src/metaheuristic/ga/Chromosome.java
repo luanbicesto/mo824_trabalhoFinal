@@ -73,7 +73,7 @@ public class Chromosome extends ArrayList<ArrayList<Integer>>{
         int totalSum = 0;
         
         for(int i = 0; i < array.size(); i++) {
-            totalSum += array.get(i); 
+            totalSum += array.get(i) * i; 
         }
         
         return totalSum;
