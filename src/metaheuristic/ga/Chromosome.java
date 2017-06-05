@@ -57,8 +57,16 @@ public class Chromosome extends ArrayList<ArrayList<Integer>>{
     
     public void setPermutationLineSum() {
         Set<Integer> alreadyUsedLocus = new HashSet<>();
+        Integer[] cumulativeSum = new Integer[permutation.length];
+        int cumulativeSumParcial = 0;
+        
+        for(int i = 0; i < permutation.length; i++) {
+        	cumulativeSumParcial += i;
+        	cumulativeSum[i] = cumulativeSumParcial;
+        }
+        
         for (int geneIndex = 0; geneIndex < this.size(); geneIndex++) {
-            int locus = sumArray(this.get(geneIndex)) % this.permutation.length;
+            int locus = sumArray(this.get(geneIndex), cumulativeSum) % this.permutation.length;
 
             while (alreadyUsedLocus.contains(locus)) {
                 locus = (locus + 1) % this.permutation.length;
@@ -69,11 +77,11 @@ public class Chromosome extends ArrayList<ArrayList<Integer>>{
         }
     }
     
-    private int sumArray(ArrayList<Integer> array) {
+    private int sumArray(ArrayList<Integer> array, Integer[] cumulativeSum) {
         int totalSum = 0;
         
         for(int i = 0; i < array.size(); i++) {
-            totalSum += array.get(i) * i; 
+            totalSum += array.get(i) * cumulativeSum[i]; 
         }
         
         return totalSum;
