@@ -87,6 +87,15 @@ public class Chromosome extends ArrayList<ArrayList<Integer>>{
         return totalSum;
     }
     
+    public String permutationToString() {
+    	String permutation = new String();
+    	for(int i = 0; i < this.permutation.length; i++) {
+    		permutation += this.permutation[i] + ", ";
+    	}
+    	
+    	return permutation;
+    }
+    
     private void setPermutation(ArrayList<Integer> genes, Set<Integer> alreadyUsedGenes, Set<Integer> alreadyUsedLocus) {
         for(int geneIndex = 0; geneIndex < genes.size(); geneIndex++) {
             int gene = genes.get(geneIndex);

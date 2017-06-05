@@ -209,7 +209,7 @@ public class TRP_GA {
     private void printBestChromossome() {
         System.out.println("Generation: " + generation);
         System.out.print(" - " + bestChromosome.getFitnessValue() + " - ");
-        System.out.println(bestChromosome.permutation.toString());
+        System.out.println(bestChromosome.permutationToString());
     }
     
     private Population crossover(Population parents) {
