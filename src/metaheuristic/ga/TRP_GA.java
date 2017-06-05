@@ -52,10 +52,10 @@ public class TRP_GA {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
-            localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
+            //localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
-            this.population = selectNewGeneration(offspring);
-            //this.population = offspring;
+            //this.population = selectNewGeneration(offspring);
+            this.population = offspring;
         }
     }
     
@@ -171,23 +171,22 @@ public class TRP_GA {
     private void mutate(Population offspring) {
         for(Chromosome chromosome : offspring) {
             for(int i = 0; i < chromosome.size(); i++) {
-                if(rng.nextDouble() < mutatationRate) {
-                    swapGeneMutation(chromosome, i, rng.nextInt(chromosome.size()));
-                }
-                /*for(int j = i+1; j < chromosome.size(); j++) {
-                    if(j != i && rng.nextDouble() < mutatationRate) {
-                        swapGeneMutation(chromosome, i, j);
+                for(int j = 0; j < chromosome.size(); j++) {
+                    if(rng.nextDouble() < mutatationRate) {
+                        int newGene = chromosome.get(i).get(j) == 1 ? 0 : 1;
+                        chromosome.get(i).set(j, newGene);
                     }
-                }*/
+                }
             }
+            chromosome.buildPermutation();
             chromosome.setFitnessValue(evaluateFitness(chromosome));
         }
     }
     
     private void swapGeneMutation(Chromosome chromosome, int locus1, int locus2) {
-        int gene = chromosome.get(locus1);
+        int gene = chromosome.getGene(locus1);
         chromosome.set(locus1, chromosome.get(locus2));
-        chromosome.set(locus2, gene);
+        //chromosome.set(locus2, gene);
     }
     
     private void keepBestChromosomeNextGeneration(Population offspring) {
@@ -210,7 +209,7 @@ public class TRP_GA {
     private void printBestChromossome() {
         System.out.println("Generation: " + generation);
         System.out.print(" - " + bestChromosome.getFitnessValue() + " - ");
-        System.out.println(bestChromosome.toString());
+        System.out.println(bestChromosome.permutation.toString());
     }
     
     private Population crossover(Population parents) {
@@ -224,156 +223,39 @@ public class TRP_GA {
             Chromosome parent1 = parents.get(i);
             Chromosome parent2 = parents.get(i+1);
             
+            crossover2PointsMatrix(parent1, parent2, offspring);
             //crossoverTwoPoints(parent1, parent2, offspring);
-            crossoverPMX(parent1, parent2, offspring);
+            //crossoverPMX(parent1, parent2, offspring);
             //crossoverRandom(parent1, parent2, offspring);
         }
         
         return offspring;
     }
     
-    private void crossoverPMX(Chromosome parent1, Chromosome parent2, Population offspring) {
-        int crosspoint1 = rng.nextInt(chromosomeSize);
-        //int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
-        int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
-        ArrayList<Integer> swath1 = new ArrayList<>();
-        ArrayList<Integer> swath2 = new ArrayList<>();
+    private void crossover2PointsMatrix(Chromosome parent1, Chromosome parent2, Population offspring) {
+        int crosspointX1 = rng.nextInt(parent1.size());
+        int crosspointX2 = crosspointX1 + rng.nextInt(parent1.size() - crosspointX1);
+        int crosspointY1 = rng.nextInt(parent1.size());
+        int crosspointY2 = crosspointY1 + rng.nextInt(parent1.size() - crosspointY1);
         
-        Chromosome child1 = new Chromosome(parent1);
-        Chromosome child2 = new Chromosome(parent2);
-        
-        for(int i = crosspoint1; i <= crosspoint2; i++) {
-            swath1.add(child1.get(i));
-            swath2.add(child2.get(i));
-        }
-        
-        Map<Integer, Integer> pmxMapping = createPMXMapping(swath1, swath2);
-        pmxAdjustiment(parent2, child1, pmxMapping, crosspoint1, crosspoint2);
-        pmxAdjustiment(parent1, child2, pmxMapping, crosspoint1, crosspoint2);
-        addChildToOffspring(child1, offspring);
-        addChildToOffspring(child2, offspring);
-    }
-    
-    private void addChildToOffspring(Chromosome child, Population offspring) {
-        child.setFitnessValue(evaluateFitness(child));
-        offspring.add(child);
-    }
-    
-    private void pmxSetGene(Chromosome parent, Chromosome child, Map<Integer, Integer> mapping, int index) {
-        Integer mappedGene = parent.get(index);
-        if(mapping.containsKey(mappedGene)) {
-            mappedGene = mapping.get(mappedGene);
-        }
-        child.set(index, mappedGene);
-    }
-    
-    private void pmxAdjustiment(Chromosome parent, Chromosome child, Map<Integer, Integer> mapping, int crosspoint1, int crosspoint2) {
-        for(int i = 0; i < crosspoint1; i++) {
-            pmxSetGene(parent, child, mapping, i);
-        }
-        
-        for(int i = crosspoint2 + 1; i < parent.size(); i++) {
-            pmxSetGene(parent, child, mapping, i);
-        }
-    }
-    
-    private Map<Integer, Integer> createPMXMapping(ArrayList<Integer> swath1, ArrayList<Integer> swath2) {
-        Map<Integer, Integer> mapping = new HashMap<>();
-        
-        for(int i = 0; i < swath1.size(); i++) {
-            if(swath2.indexOf(swath1.get(i)) == -1) {
-                int initialGene = swath1.get(i);
-                int lastGene = swath2.get(i);
-                
-                int position = swath1.indexOf(lastGene);
-                while(position != -1) {
-                    lastGene = swath2.get(position);
-                    position = swath1.indexOf(lastGene);
-                }
-                
-                mapping.put(initialGene, lastGene);
-                mapping.put(lastGene, initialGene);
-            }
-        }
-        
-        return mapping;
-    }
-    
-    private void crossoverRandom(Chromosome parent1, Chromosome parent2, Population offspring) {
-        ArrayList<Integer> genes1 = new ArrayList<>();
-        ArrayList<Integer> genes2 = new ArrayList<>();
-        int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
         Chromosome offspring1 = new Chromosome(parent1);
         Chromosome offspring2 = new Chromosome(parent2);
         
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            genes1.add(offspring1.get(c));
-            genes2.add(offspring2.get(c));
+        for(int i = crosspointX1; i <= crosspointX2; i++) {
+            for(int j = crosspointY1; j <= crosspointY2; j++) {
+                int offspring1Value = offspring1.get(i).get(j);
+                int offspring2Value = offspring2.get(i).get(j);
+                offspring1.get(i).set(j, offspring2Value);
+                offspring2.get(i).set(j, offspring1Value);
+            }
         }
         
-        Collections.shuffle(genes1, rng);
-        Collections.shuffle(genes2, rng);
-        
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            offspring1.set(c, genes1.get(c - crosspoint1));
-            offspring2.set(c, genes2.get(c - crosspoint1));
-        }
-        
+        offspring1.buildPermutation();
+        offspring2.buildPermutation();
         offspring1.setFitnessValue(evaluateFitness(offspring1));
         offspring2.setFitnessValue(evaluateFitness(offspring2));
         offspring.add(offspring1);
         offspring.add(offspring2);
-    }
-    
-    private void crossoverTwoPoints(Chromosome parent1, Chromosome parent2, Population offspring) {
-        int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
-        //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
-        Chromosome offspring1 = new Chromosome(parent1);
-        Chromosome offspring2 = new Chromosome(parent2);
-        
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            offspring1.set(c, parent2.get(c));
-            offspring2.set(c, parent1.get(c));
-        }
-        
-        adjustChromosome(offspring1);
-        adjustChromosome(offspring2);
-        offspring1.setFitnessValue(evaluateFitness(offspring1));
-        offspring2.setFitnessValue(evaluateFitness(offspring2));
-        offspring.add(offspring1);
-        offspring.add(offspring2);
-    }
-    
-    private void adjustChromosome(Chromosome chromosome) {
-        Set<Integer> setDistinct = new HashSet<>(this.genes);
-        Set<Integer> set = new HashSet<>();
-        
-        for(int i = 0; i < chromosome.size(); i++) {
-            setDistinct.remove(chromosome.get(i));
-        }
-        
-        for(int i = 0; i < chromosome.size(); i++) {
-            if(set.contains(chromosome.get(i))) {
-                Integer gene = chooseNextGene(chromosome, i, setDistinct);
-                chromosome.set(i, gene);
-                setDistinct.remove(gene);
-            } else {
-                set.add(chromosome.get(i));
-            }
-        }
-        
-        chromosome.setFitnessValue(evaluateFitness(chromosome));
-    }
-    
-    private Integer chooseNextGene(Chromosome chromosome, int locus, Set<Integer> setDistinct) {
-        if(setDistinct.size() == 1) {
-            return setDistinct.iterator().next();
-        }
-        
-        ArrayList<Integer> genes = new ArrayList<>(setDistinct);
-        return genes.get(rng.nextInt(genes.size()));
     }
     
     /*
@@ -428,10 +310,10 @@ public class TRP_GA {
         Double latencyLastPath = 0.0;
         int lastIdPath = 0;
         
-        for(int i = 0; i < chromosome.size(); i++) {
-            totalLatency += latencyLastPath + instance.getAdjacentMatrix()[lastIdPath][chromosome.get(i)];
-            latencyLastPath += instance.getAdjacentMatrix()[lastIdPath][chromosome.get(i)];
-            lastIdPath = chromosome.get(i);
+        for(int i = 0; i < chromosome.permutation.length; i++) {
+            totalLatency += latencyLastPath + instance.getAdjacentMatrix()[lastIdPath][chromosome.getGene(i)];
+            latencyLastPath += instance.getAdjacentMatrix()[lastIdPath][chromosome.getGene(i)];
+            lastIdPath = chromosome.getGene(i);
         }
         return totalLatency;
     }
@@ -460,8 +342,8 @@ public class TRP_GA {
     }
     
     private Chromosome generateRandomChromosome(ArrayList<Integer> genes) {
-        Collections.shuffle(genes);
-        Chromosome chromosome = new Chromosome(genes);
+        //Collections.shuffle(genes);
+        Chromosome chromosome = new Chromosome(genes, rng);
         chromosome.setFitnessValue(evaluateFitness(chromosome));
         return chromosome;
     }
