@@ -29,10 +29,10 @@ public class TRP_GA {
     private int generationsWithoutImproving;
     
     private static int CROSSPOINT_SIZE = 4;
-    private static double NEW_POPULATION_PERCENTAGE = 0.5;
+    private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
-    private static int EXECUTION_TIME = 300;
-    private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 100;
+    private static int EXECUTION_TIME = 1800;
+    private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 200;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -66,24 +66,11 @@ public class TRP_GA {
     private Population createHybridPopulation() {
         Population hybrids = new Population();
         Population parents = selectParentsCrossover();
-        ArrayList<Integer> genes = buildGenes();
         int hybridPopulationSize = (int)Math.ceil(popSize * HYBRID_POPULATION_PERCENTAGE);
         
         while(hybrids.size() <= hybridPopulationSize) {
-            ArrayList<Integer> genesCopy = new ArrayList<>(genes);
             Chromosome parent = parents.get(rng.nextInt(parents.size()));
             Chromosome hybrid = new Chromosome(parent);
-            /*int crosspoint = rng.nextInt(parent.size());
-            
-            for(int i = 0; i <= crosspoint; i++) {
-                genesCopy.remove(hybrid.get(i));
-            }
-            
-            for(int i = crosspoint + 1; i < hybrid.size(); i++) {
-                int indexGene = rng.nextInt(genesCopy.size());
-                hybrid.set(i, genesCopy.get(indexGene));
-                genesCopy.remove(indexGene);
-            }*/
             
             localSearch(hybrid, LS_TYPE.FIRST_IMPROVING);
             hybrids.add(hybrid);
