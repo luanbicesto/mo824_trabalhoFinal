@@ -27,6 +27,8 @@ public class TRP_GA {
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     private int generation;
     private int generationsWithoutImproving;
+    private ArrayList<Integer> indecesI = new ArrayList<>();
+    private ArrayList<Integer> indecesJ = new ArrayList<>();
     
     private static int CROSSPOINT_SIZE = 4;
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
@@ -47,6 +49,7 @@ public class TRP_GA {
         long initialTime = System.nanoTime();
         population = createInitialPopulation();
         setBestChromosome(population);
+        initializeIndeces();
         
         for(generation = 0; generation < this.generations && getElapsedTime(initialTime) <= EXECUTION_TIME; generation++) {
             Population parents = selectParentsCrossover();
@@ -57,6 +60,13 @@ public class TRP_GA {
             this.population = selectNewGeneration(offspring);
             //this.population = offspring;
         }
+    }
+    
+    private void initializeIndeces() {
+    	for(int i = 0; i < this.chromosomeSize; i++) {
+    		indecesI.add(i);
+    		indecesJ.add(i);
+    	}
     }
     
     private long getElapsedTime(long initialTime) {
@@ -126,25 +136,32 @@ public class TRP_GA {
         double bestMovimentCost = chromosome.getFitnessValue();
         double movimentFinalCost = 0.0;
         boolean improved = true;
+        Collections.shuffle(indecesI);
+        Collections.shuffle(indecesJ);
         
         while(improved) {
             improved = false;
-            for(int i = 0; i < chromosome.size(); i++) {
-                for(int j = i+1; j < chromosome.size(); j++) {
-                    swapGeneMutation(chromosome, i, j);
-                    movimentFinalCost = evaluateFitness(chromosome);
-                    
-                    if(Double.compare(movimentFinalCost, bestMovimentCost) < 0) {
-                        if(lsType == LS_TYPE.BEST_IMPROVING) {
-                            bestMovimentI = i;
-                            bestMovimentJ = j;
-                            swapGeneMutation(chromosome, i, j);
+            for(int i = 0; i < indecesI.size(); i++) {
+                for(int j = 0; j < indecesJ.size(); j++) {
+                	int positionI = indecesI.get(i);
+            		int positionJ = indecesJ.get(j);
+            		
+                	if(positionI != positionJ) {
+                		swapGeneMutation(chromosome, positionI, positionJ);
+                        movimentFinalCost = evaluateFitness(chromosome);
+                        
+                        if(Double.compare(movimentFinalCost, bestMovimentCost) < 0) {
+                            if(lsType == LS_TYPE.BEST_IMPROVING) {
+                                bestMovimentI = positionI;
+                                bestMovimentJ = positionJ;
+                                swapGeneMutation(chromosome, positionI, positionJ);
+                            }
+                            bestMovimentCost = movimentFinalCost;
+                            improved = true;
+                        } else {
+                            swapGeneMutation(chromosome, positionI, positionJ);
                         }
-                        bestMovimentCost = movimentFinalCost;
-                        improved = true;
-                    } else {
-                        swapGeneMutation(chromosome, i, j);
-                    }
+                	}
                 }
             }
             if(improved && lsType == LS_TYPE.BEST_IMPROVING) {
