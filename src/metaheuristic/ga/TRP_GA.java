@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 
 import common.Instance;
 import common.InstanceManager;
@@ -27,12 +25,13 @@ public class TRP_GA {
     private enum LS_TYPE {BEST_IMPROVING, FIRST_IMPROVING}
     private int generation;
     private int generationsWithoutImproving;
+    private int newGenerationsCount;
     
-    private static int CROSSPOINT_SIZE = 4;
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
     private static int EXECUTION_TIME = 1800;
     private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 200;
+    private static int MAX_NEW_GENERATIONS = 7;
     
     public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
         this.popSize = popSize;
@@ -41,6 +40,7 @@ public class TRP_GA {
         this.mutatationRate = mutatationRate;
         this.instance = instance;
         this.generationsWithoutImproving = 0;
+        this.newGenerationsCount = 0;
     }
     
     public void solve() {
@@ -105,10 +105,11 @@ public class TRP_GA {
         Population hybridPopulation = createHybridPopulation();
         includeHybridPopulation(offspring, hybridPopulation);
         
-        if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING) {
+        if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING && this.newGenerationsCount < MAX_NEW_GENERATIONS) {
             Population newPopulation = createInitialPopulation();
             includeNewPopulation(offspring, newPopulation);
             this.generationsWithoutImproving = 0;
+            this.newGenerationsCount++;
             System.out.println("New population arrived");
         }
         
@@ -181,6 +182,7 @@ public class TRP_GA {
         Chromosome bestChromosomeOffspring = findBestChromosome(offspring);
         if(bestChromosomeOffspring.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
             this.generationsWithoutImproving = 0;
+            this.newGenerationsCount = 0;
             this.bestChromosome = new Chromosome(bestChromosomeOffspring);
             printBestChromossome();
             
@@ -286,88 +288,6 @@ public class TRP_GA {
         return mapping;
     }
     
-    private void crossoverRandom(Chromosome parent1, Chromosome parent2, Population offspring) {
-        ArrayList<Integer> genes1 = new ArrayList<>();
-        ArrayList<Integer> genes2 = new ArrayList<>();
-        int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
-        Chromosome offspring1 = new Chromosome(parent1);
-        Chromosome offspring2 = new Chromosome(parent2);
-        
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            genes1.add(offspring1.get(c));
-            genes2.add(offspring2.get(c));
-        }
-        
-        Collections.shuffle(genes1, rng);
-        Collections.shuffle(genes2, rng);
-        
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            offspring1.set(c, genes1.get(c - crosspoint1));
-            offspring2.set(c, genes2.get(c - crosspoint1));
-        }
-        
-        offspring1.setFitnessValue(evaluateFitness(offspring1));
-        offspring2.setFitnessValue(evaluateFitness(offspring2));
-        offspring.add(offspring1);
-        offspring.add(offspring2);
-    }
-    
-    private void crossoverTwoPoints(Chromosome parent1, Chromosome parent2, Population offspring) {
-        int crosspoint1 = rng.nextInt(chromosomeSize);
-        int crosspoint2 = crosspoint1 + CROSSPOINT_SIZE < chromosomeSize ? crosspoint1 + CROSSPOINT_SIZE : crosspoint1;
-        //int crosspoint2 = crosspoint1 + rng.nextInt(chromosomeSize - crosspoint1);
-        Chromosome offspring1 = new Chromosome(parent1);
-        Chromosome offspring2 = new Chromosome(parent2);
-        
-        for(int c = crosspoint1; c <= crosspoint2; c++) {
-            offspring1.set(c, parent2.get(c));
-            offspring2.set(c, parent1.get(c));
-        }
-        
-        adjustChromosome(offspring1);
-        adjustChromosome(offspring2);
-        offspring1.setFitnessValue(evaluateFitness(offspring1));
-        offspring2.setFitnessValue(evaluateFitness(offspring2));
-        offspring.add(offspring1);
-        offspring.add(offspring2);
-    }
-    
-    private void adjustChromosome(Chromosome chromosome) {
-        Set<Integer> setDistinct = new HashSet<>(this.genes);
-        Set<Integer> set = new HashSet<>();
-        
-        for(int i = 0; i < chromosome.size(); i++) {
-            setDistinct.remove(chromosome.get(i));
-        }
-        
-        for(int i = 0; i < chromosome.size(); i++) {
-            if(set.contains(chromosome.get(i))) {
-                Integer gene = chooseNextGene(chromosome, i, setDistinct);
-                chromosome.set(i, gene);
-                setDistinct.remove(gene);
-            } else {
-                set.add(chromosome.get(i));
-            }
-        }
-        
-        chromosome.setFitnessValue(evaluateFitness(chromosome));
-    }
-    
-    private Integer chooseNextGene(Chromosome chromosome, int locus, Set<Integer> setDistinct) {
-        if(setDistinct.size() == 1) {
-            return setDistinct.iterator().next();
-        }
-        
-        ArrayList<Integer> genes = new ArrayList<>(setDistinct);
-        return genes.get(rng.nextInt(genes.size()));
-    }
-    
-    /*
-     * PontoMelhoria: sera que o tamanho da nova populacao nao deveria ser menor que o tamanho da populacao atual ?
-     * sera que algo diferente pode ser feito nesta escolha ?
-     * Vale a pena realizar alguns testes aqui  
-     */
     private Population selectParentsCrossover() {
         Population population = new Population();
         
@@ -455,7 +375,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S200-R2.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R2.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();

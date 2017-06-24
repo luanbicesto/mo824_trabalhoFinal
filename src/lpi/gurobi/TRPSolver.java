@@ -3,7 +3,6 @@ package lpi.gurobi;
 import common.Instance;
 import common.InstanceManager;
 import gurobi.GRB;
-import gurobi.GRBConstr;
 import gurobi.GRBEnv;
 import gurobi.GRBException;
 import gurobi.GRBLinExpr;
@@ -28,7 +27,7 @@ public class TRPSolver {
         try {
             GRBEnv env = new GRBEnv();
             GRBModel model = new GRBModel(env);
-            model.set(GRB.DoubleParam.TimeLimit, 3600);
+            model.set(GRB.DoubleParam.TimeLimit, 1800);
 
             permutationVariables = createPermutationVariables(model);
             distances = createDistanceVariables(model, permutationVariables);
