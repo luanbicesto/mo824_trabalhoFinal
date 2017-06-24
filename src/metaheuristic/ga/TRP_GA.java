@@ -59,7 +59,6 @@ public class TRP_GA {
             localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
             this.population = selectNewGeneration(offspring);
-            //this.population = offspring;
         }
         
         return bestSolution;
@@ -116,7 +115,7 @@ public class TRP_GA {
             includeNewPopulation(offspring, newPopulation);
             this.generationsWithoutImproving = 0;
             this.newGenerationsCount++;
-            System.out.println("New population arrived");
+            //System.out.println("New population arrived");
         }
         
         return offspring;
@@ -204,9 +203,9 @@ public class TRP_GA {
     
     private void printBestChromossome() {
         
-        System.out.println("Generation: " + generation);
+        /*System.out.println("Generation: " + generation);
         System.out.print(" - " + bestChromosome.getFitnessValue() + " - ");
-        System.out.println(bestChromosome.toString());
+        System.out.println(bestChromosome.toString());*/
         this.bestSolution.setValue(bestChromosome.getFitnessValue());
         this.bestSolution.setTime(getElapsedTime(initialTime));
     }
@@ -214,17 +213,11 @@ public class TRP_GA {
     private Population crossover(Population parents) {
         Population offspring = new Population();
         
-        /*PontoMelhoria: 
-         * swapGenesCrossover: verificar o metodo do professor
-         * Escolher os pais aleatoriamente ?
-         */
         for(int i = 0; i < popSize; i+=2) {
             Chromosome parent1 = parents.get(i);
             Chromosome parent2 = parents.get(i+1);
             
-            //crossoverTwoPoints(parent1, parent2, offspring);
             crossoverPMX(parent1, parent2, offspring);
-            //crossoverRandom(parent1, parent2, offspring);
         }
         
         return offspring;
@@ -384,7 +377,7 @@ public class TRP_GA {
     
     public static void main(String[] args) {
         InstanceManager instanceMg = new InstanceManager();
-        Instance instance = instanceMg.readInstance("instances/converted/TRP-S100-R2.trp");
+        Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
         
         TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
         trp.solve();
