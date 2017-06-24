@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import common.BestSolution;
 import common.Instance;
 import common.InstanceManager;
 
@@ -26,6 +27,8 @@ public class TRP_GA {
     private int generation;
     private int generationsWithoutImproving;
     private int newGenerationsCount;
+    private BestSolution bestSolution;
+    private long initialTime;
     
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
@@ -41,10 +44,11 @@ public class TRP_GA {
         this.instance = instance;
         this.generationsWithoutImproving = 0;
         this.newGenerationsCount = 0;
+        this.bestSolution = new BestSolution();
     }
     
-    public void solve() {
-        long initialTime = System.nanoTime();
+    public BestSolution solve() {
+        initialTime = System.nanoTime();
         population = createInitialPopulation();
         setBestChromosome(population);
         
@@ -57,6 +61,8 @@ public class TRP_GA {
             this.population = selectNewGeneration(offspring);
             //this.population = offspring;
         }
+        
+        return bestSolution;
     }
     
     private long getElapsedTime(long initialTime) {
@@ -197,9 +203,12 @@ public class TRP_GA {
     }
     
     private void printBestChromossome() {
+        
         System.out.println("Generation: " + generation);
         System.out.print(" - " + bestChromosome.getFitnessValue() + " - ");
         System.out.println(bestChromosome.toString());
+        this.bestSolution.setValue(bestChromosome.getFitnessValue());
+        this.bestSolution.setTime(getElapsedTime(initialTime));
     }
     
     private Population crossover(Population parents) {
