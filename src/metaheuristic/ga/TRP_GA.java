@@ -56,7 +56,6 @@ public class TRP_GA {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
-            //localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
             this.population = selectNewGeneration(offspring);
         }
@@ -188,6 +187,7 @@ public class TRP_GA {
         if(bestChromosomeOffspring.getFitnessValue() < this.bestChromosome.getFitnessValue()) {
             this.generationsWithoutImproving = 0;
             this.newGenerationsCount = 0;
+            localSearch(bestChromosomeOffspring, LS_TYPE.BEST_IMPROVING);
             this.bestChromosome = new Chromosome(bestChromosomeOffspring);
             printBestChromossome();
             
