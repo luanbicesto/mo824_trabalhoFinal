@@ -58,8 +58,7 @@ public class TRP_GA {
             mutate(offspring);
             //localSearchBestChromosome(offspring, LS_TYPE.BEST_IMPROVING);
             keepBestChromosomeNextGeneration(offspring);
-            //this.population = selectNewGeneration(offspring);
-            this.population = offspring;
+            this.population = selectNewGeneration(offspring);
         }
         
         return bestSolution;
@@ -108,8 +107,8 @@ public class TRP_GA {
     }
     
     private Population selectNewGeneration(Population offspring) {
-        //Population hybridPopulation = createHybridPopulation();
-        //includeHybridPopulation(offspring, hybridPopulation);
+        Population hybridPopulation = createHybridPopulation();
+        includeHybridPopulation(offspring, hybridPopulation);
         
         if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING && this.newGenerationsCount < MAX_NEW_GENERATIONS) {
             Population newPopulation = createInitialPopulation();

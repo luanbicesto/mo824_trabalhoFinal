@@ -21,7 +21,7 @@ public class ExecInstances {
             System.out.println(instancePath);
             Instance instance = instanceMg.readInstance(instancePath);
             
-            TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 1000000000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
+            TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 1000000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
             solution = trp.solve();
             printSolution(solution);
         }
