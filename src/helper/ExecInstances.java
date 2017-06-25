@@ -36,11 +36,12 @@ public class ExecInstances {
     private ArrayList<String> getInstancesName() {
         ArrayList<String> instances = new ArrayList<>();
         
-        instances.add("instances/converted/TRP-S50-R2.trp");
-        instances.add("instances/converted/TRP-S100-R1.trp");
+        instances.add("instances/converted/TRP-S10-R1.trp");
+        instances.add("instances/converted/TRP-S20-R1.trp");
+        /*instances.add("instances/converted/TRP-S100-R1.trp");
         instances.add("instances/converted/TRP-S100-R2.trp");
         instances.add("instances/converted/TRP-S200-R2.trp");
-        instances.add("instances/converted/TRP-S500-R1.trp");
+        instances.add("instances/converted/TRP-S500-R1.trp");*/
         
         return instances;
     }

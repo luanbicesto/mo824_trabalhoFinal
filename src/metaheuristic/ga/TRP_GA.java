@@ -32,7 +32,7 @@ public class TRP_GA {
     
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
-    private static int EXECUTION_TIME = 1800;
+    private static int EXECUTION_TIME = 10;
     private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 200;
     private static int MAX_NEW_GENERATIONS = 7;
     
@@ -110,13 +110,13 @@ public class TRP_GA {
         Population hybridPopulation = createHybridPopulation();
         includeHybridPopulation(offspring, hybridPopulation);
         
-        if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING && this.newGenerationsCount < MAX_NEW_GENERATIONS) {
-            Population newPopulation = createInitialPopulation();
-            includeNewPopulation(offspring, newPopulation);
-            this.generationsWithoutImproving = 0;
-            this.newGenerationsCount++;
+        /*if(this.generationsWithoutImproving == MAX_GENERATIONS_WITHOUT_IMPROVING && this.newGenerationsCount < MAX_NEW_GENERATIONS) {
+            //Population newPopulation = createInitialPopulation();
+            //includeNewPopulation(offspring, newPopulation);
+            //this.generationsWithoutImproving = 0;
+            //this.newGenerationsCount++;
             //System.out.println("New population arrived");
-        }
+        }*/
         
         return offspring;
     }
