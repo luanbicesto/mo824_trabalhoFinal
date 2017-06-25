@@ -25,6 +25,5 @@ public class TTTPlot {
     
     private void printSolution(BestSolution solution) {
         System.out.print(solution.getValue());
-        System.out.println(" - " + solution.getTime());
     }
 }
