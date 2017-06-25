@@ -32,7 +32,7 @@ public class TRP_GA {
     
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
-    private static int EXECUTION_TIME = 1800;
+    private static int EXECUTION_TIME = 10;
     private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 200;
     private static int MAX_NEW_GENERATIONS = 7;
     
