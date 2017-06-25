@@ -29,14 +29,15 @@ public class TRP_GA {
     private int newGenerationsCount;
     private BestSolution bestSolution;
     private long initialTime;
+    private double targerValue;
     
     private static double NEW_POPULATION_PERCENTAGE = 0.1;
     private static double HYBRID_POPULATION_PERCENTAGE = 0.2;
-    private static int EXECUTION_TIME = 1800;
+    private static int EXECUTION_TIME = 120;
     private static int MAX_GENERATIONS_WITHOUT_IMPROVING = 200;
     private static int MAX_NEW_GENERATIONS = 7;
     
-    public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance) {
+    public TRP_GA(int popSize, int chromosomeSize, int generations, double mutatationRate, Instance instance, double targetValue) {
         this.popSize = popSize;
         this.chromosomeSize = chromosomeSize;
         this.generations = generations;
@@ -45,6 +46,7 @@ public class TRP_GA {
         this.generationsWithoutImproving = 0;
         this.newGenerationsCount = 0;
         this.bestSolution = new BestSolution();
+        this.targerValue = targetValue;
     }
     
     public BestSolution solve() {
@@ -52,7 +54,7 @@ public class TRP_GA {
         population = createInitialPopulation();
         setBestChromosome(population);
         
-        for(generation = 0; generation < this.generations && getElapsedTime(initialTime) <= EXECUTION_TIME; generation++) {
+        for(generation = 0; keepExecuting(generation); generation++) {
             Population parents = selectParentsCrossover();
             Population offspring = crossover(parents);
             mutate(offspring);
@@ -62,6 +64,10 @@ public class TRP_GA {
         }
         
         return bestSolution;
+    }
+    
+    private boolean keepExecuting(int currentGeneration) {
+        return generation < this.generations && getElapsedTime(initialTime) <= EXECUTION_TIME && this.bestChromosome.getFitnessValue() > this.targerValue;
     }
     
     private long getElapsedTime(long initialTime) {
@@ -379,7 +385,7 @@ public class TRP_GA {
         InstanceManager instanceMg = new InstanceManager();
         Instance instance = instanceMg.readInstance("instances/converted/TRP-S20-R1.trp");
         
-        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance); //population, chromosomeSize, generations, mutation
+        TRP_GA trp = new TRP_GA(100, instance.getGraphSize()-1, 100000, 1/(double)instance.getGraphSize(), instance, 0.0); //population, chromosomeSize, generations, mutation
         trp.solve();
     }
 }
